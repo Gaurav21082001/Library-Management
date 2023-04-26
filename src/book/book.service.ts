@@ -1,3 +1,4 @@
+import { UpdateBookDto } from './DTO/updateBook.dto';
 import { CreateBookDto } from './DTO/createBook.dto';
 import { Injectable } from '@nestjs/common';
 import { BookEnity } from './Entity/book.entity';
@@ -19,19 +20,31 @@ export class BookService {
         return book;
     }
 
-    // async updateBookDetails(id: number, title: string, details: string, author: string, stock: number) {
-    //     const book = await BookEnity.findOneBy({ id: id })
-    //     if (book) {
-    //         book.title = title;
-    //         book.details = details;
-    //         book.author = author;
-    //         book.stock = stock;
-    //         await book.save();
-    //         return book;
-    //     }
-    //     else {
-    //         return "Book not found"
-    //     }
+    async updateBookDetails(id: number,updateBookDto:UpdateBookDto) {
+        const book = await BookEnity.findOneBy({ id: id })
+        if (book) {
+            book.title = updateBookDto.title;
+            book.details = updateBookDto.details;
+            book.author = updateBookDto.author;
+            book.stock = updateBookDto.stock;
+            await book.save();
+            return book;
+        }
+        else {
+            return "Book not found"
+        }
         
-    // }
+    }
+
+    async deleteBook(id: number) {
+        const book = await BookEnity.findOneBy({ id: id })
+        if (book) {
+            await book.remove();
+            return `book deleted successfully`;
+        }
+        else {
+            return "Book not found"
+        }
+        
+    }
 }
