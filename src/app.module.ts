@@ -5,7 +5,8 @@ import { BookController } from './book/book.controller';
 import { BookService } from './book/book.service';
 import { BookModule } from './book/book.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { BookEnity } from './book/Entity/book.entity';
+import { BookEntity } from './book/Entity/book.entity';
+
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { BookEnity } from './book/Entity/book.entity';
       username: 'root',
       password: 'root',
       database: 'bookdb',
-      entities: [BookEnity],
+      entities: [BookEntity],
       synchronize: true,
     }),
     BookModule],

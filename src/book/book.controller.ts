@@ -3,11 +3,13 @@ import { Controller, Delete, Get, Param, Post, Put,Query } from '@nestjs/common'
 import { Body } from '@nestjs/common/decorators';
 import { CreateBookDto } from './DTO/createBook.dto';
 import { UpdateBookDto } from './DTO/updateBook.dto';
-import { BookEnity } from './Entity/book.entity';
+
+
 @Controller('book')
 export class BookController {
 
     constructor(private bookService:BookService){}
+    
     @Get('getbooks')
     getBooks(){
         return this.bookService.getBooks();
@@ -27,5 +29,11 @@ export class BookController {
         return await this.bookService.deleteBook(id);
     }
 
+    @Get(':search')
+    async searchBook(@Param('search') search:string){
+        return await this.bookService.searchBook(search);
+    }
+
+   
 
 }
