@@ -6,8 +6,6 @@ import { BookEntity } from './Entity/book.entity';
 
 @Injectable()
 export class BookService {
-
-
     async getBooks() {
         return await BookEntity.find();
     }

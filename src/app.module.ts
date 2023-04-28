@@ -6,6 +6,10 @@ import { BookService } from './book/book.service';
 import { BookModule } from './book/book.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BookEntity } from './book/Entity/book.entity';
+import { UserController } from './user/user.controller';
+import { UserService } from './user/user.service';
+import { UserModule } from './user/user.module';
+import { UserEntity } from './user/Entity/user.entity';
 
 
 @Module({
@@ -17,11 +21,12 @@ import { BookEntity } from './book/Entity/book.entity';
       username: 'root',
       password: 'root',
       database: 'bookdb',
-      entities: [BookEntity],
+      entities: [BookEntity,UserEntity],
       synchronize: true,
     }),
-    BookModule],
-  controllers: [AppController, BookController],
-  providers: [AppService, BookService],
+    BookModule,
+    UserModule],
+  controllers: [AppController, BookController, UserController],
+  providers: [AppService, BookService, UserService],
 })
 export class AppModule {}
