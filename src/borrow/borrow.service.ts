@@ -31,16 +31,4 @@ export class BorrowService {
         return borrow;
     }
 
-    async returnBook(borrowId: number) {
-        const borrow = await BorrowEntity.findOneBy({ id: borrowId })
-        const book = await BookEntity.findOneBy({ id: borrow.bookId });
-        if (!borrow && !book) {
-            return 'Issued book not found';
-        }
-        borrow.returnDate = new Date();
-        book.stock+=1;
-      await book.save();
-      await borrow.save();
-        return borrow;
-    }
 }

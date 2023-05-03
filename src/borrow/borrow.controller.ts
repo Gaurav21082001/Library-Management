@@ -16,9 +16,4 @@ export class BorrowController {
         return this.borrowService.issueBook(id,userId);
     }
 
-    @Post(':id/return')
-    returnBook(@Param('id') id:number){
-        return this.borrowService.returnBook(id);
-    }
-
 }
