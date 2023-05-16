@@ -2,15 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { BookEntity } from 'src/book/Entity/book.entity';
 import { BorrowEntity } from './Entity/borrow.entity';
 import { UserEntity } from 'src/user/Entity/user.entity';
-import {
-  DataSource,
-  Transaction,
-  getConnection,
-  getManager,
-  getRepository,
-} from 'typeorm';
+import { DataSource, Transaction, getConnection } from 'typeorm';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { BorrowRepository } from './borrow.repository';
+import { getManager } from 'typeorm';
 
 @Injectable()
 export class BorrowService {
@@ -41,14 +36,12 @@ export class BorrowService {
       borrow.bookId = bookId;
       borrow.userId = userId;
       borrow.issueDate = new Date();
-      await this.dataSource.manager.transaction(
-        async (transitionEntityManager) => {
-          await transitionEntityManager.save(BookEntity, book);
-          await transitionEntityManager.save(BorrowEntity, borrow);
-        },
-      );
-      return borrow;
+      await this.dataSource.manager.transaction(async (transactionalEntityManager) => {
+        await transactionalEntityManager.save(BookEntity, book);
+        await transactionalEntityManager.save(BorrowEntity, borrow);
+      });
     }
+    return borrow;
   }
 
   async returnBook(borrowId: number): Promise<string | BorrowEntity> {
@@ -57,14 +50,16 @@ export class BorrowService {
     if (!borrow) {
       return 'Issued book not found';
     }
+    if (!book) {
+      return 'Book not found';
+    }
     borrow.returnDate = new Date();
     book.stock += 1;
-    await this.dataSource.manager.transaction(
-      async (transitionEntityManager) => {
-        await transitionEntityManager.save(BookEntity, book);
-        await transitionEntityManager.save(BorrowEntity, borrow);
-      },
-    );
+
+    await this.dataSource.manager.transaction(async (transactionalEntityManager) => {
+      await transactionalEntityManager.save(BookEntity, book);
+      await transactionalEntityManager.save(BorrowEntity, borrow);
+    });
     return borrow;
   }
 }
