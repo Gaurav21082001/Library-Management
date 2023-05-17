@@ -7,19 +7,28 @@ import {
   Post,
   Put,
   Query,
+  DefaultValuePipe,ParseIntPipe
 } from '@nestjs/common';
 import { Body } from '@nestjs/common/decorators';
 import { CreateBookDto } from './dto/create_book.dto';
 import { UpdateBookDto } from './dto/update_book.dto';
 import { BookEntity } from './Entity/book.entity';
+import { Pagination } from 'nestjs-typeorm-paginate';
 
 @Controller('book')
 export class BookController {
   constructor(private bookService: BookService) {}
 
   @Get('books')
-  getBooks() {
-    return this.bookService.getBooks();
+  getBooks(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+  ): Promise<Pagination<BookEntity>>  {
+    limit = limit > 50 ? 50 : limit;
+    return this.bookService.paginate({
+      page,
+      limit,
+    });
   }
 
   @Post('add')

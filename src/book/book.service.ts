@@ -5,6 +5,7 @@ import { BookEntity } from './Entity/book.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BookRepository } from './book.repository';
+import { IPaginationOptions,Pagination,paginate } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class BookService {
@@ -12,19 +13,17 @@ export class BookService {
     @InjectRepository(BookEntity) private bookRepository: BookRepository,
   ) {}
 
+  async paginate(options: IPaginationOptions): Promise<Pagination<BookEntity>> {
+    const queryBuilder = this.bookRepository.createQueryBuilder('book');
+    queryBuilder.orderBy('book.id', 'ASC'); // Or whatever you need to do
+
+    return paginate<BookEntity>(queryBuilder, options);
+  }
+
   async getBooks():Promise<BookEntity[]> {
     return await this.bookRepository.find();
   }
 
-  // async addBook(createBookDto: CreateBookDto) {
-  //     const book = new BookEntity();
-  //     book.title = createBookDto.title;
-  //     book.details = createBookDto.details;
-  //     book.author = createBookDto.author;
-  //     book.stock = createBookDto.stock;
-  //     await book.save();
-  //     return book;
-  // }
   async addBook(input: CreateBookDto):Promise<BookEntity> {
     return await this.bookRepository.save({ ...input });
   }
