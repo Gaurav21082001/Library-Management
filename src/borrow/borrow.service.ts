@@ -2,9 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { BookEntity } from 'src/book/Entity/book.entity';
 import { BorrowEntity } from './Entity/borrow.entity';
 import { UserEntity } from 'src/user/Entity/user.entity';
-import { DataSource, Transaction, getConnection, getManager } from 'typeorm';
+import { DataSource, Transaction, getConnection } from 'typeorm';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { BorrowRepository } from './borrow.repository';
+import { getManager } from 'typeorm';
 
 @Injectable()
 export class BorrowService {
@@ -21,9 +22,6 @@ export class BorrowService {
     bookId: number,
     userId: number,
   ): Promise<string | BorrowEntity> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
     const book = await BookEntity.findOneBy({ id: bookId });
     const user = await UserEntity.findOneBy({ id: userId });
     const borrow = new BorrowEntity();
@@ -38,39 +36,30 @@ export class BorrowService {
       borrow.bookId = bookId;
       borrow.userId = userId;
       borrow.issueDate = new Date();
-      try {
-        await queryRunner.manager.save(book);
-        await queryRunner.manager.save(borrow);
-        await queryRunner.commitTransaction();
-      } catch (err) {
-        await queryRunner.rollbackTransaction();
-      } finally {
-        await queryRunner.release();
-        return borrow;
-      }
+      await this.dataSource.manager.transaction(async (transactionalEntityManager) => {
+        await transactionalEntityManager.save(BookEntity, book);
+        await transactionalEntityManager.save(BorrowEntity, borrow);
+      });
     }
+    return borrow;
   }
 
   async returnBook(borrowId: number): Promise<string | BorrowEntity> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
     const borrow = await BorrowEntity.findOneBy({ id: borrowId });
     const book = await BookEntity.findOneBy({ id: borrow.bookId });
     if (!borrow) {
       return 'Issued book not found';
     }
+    if (!book) {
+      return 'Book not found';
+    }
     borrow.returnDate = new Date();
     book.stock += 1;
-    try {
-      await queryRunner.manager.save(book);
-      await queryRunner.manager.save(borrow);
-      await queryRunner.commitTransaction();
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-    } finally {
-      await queryRunner.release();
-      return borrow;
-    }
+
+    await this.dataSource.manager.transaction(async (transactionalEntityManager) => {
+      await transactionalEntityManager.save(BookEntity, book);
+      await transactionalEntityManager.save(BorrowEntity, borrow);
+    });
+    return borrow;
   }
 }
