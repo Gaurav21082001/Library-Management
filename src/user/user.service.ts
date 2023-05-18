@@ -2,38 +2,37 @@ import { UpdateUserDto } from './DTO/updateUser.dto';
 import { AddUserDto } from './DTO/addUser.dto';
 import { Injectable } from '@nestjs/common';
 import { UserEntity } from './Entity/user.entity';
+import { UserRepository } from './user.repository';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class UserService {
-    async getUser() {
-        return await UserEntity.find();
-    }
+  constructor(
+    @InjectRepository(UserEntity) private userRepository: UserRepository,
+  ) {}
 
-    async addUser(addUserDto: AddUserDto) {
-        const user = new UserEntity();
-        user.firstName = addUserDto.firstName;
-        user.lastName = addUserDto.lastName;
-        user.email = addUserDto.email;
-        user.role=addUserDto.role;
-        user.password = addUserDto.password;
-        user.contactNo = addUserDto.contactNo;
-        await user.save();
-        return user;
-    }
+  async getUser(): Promise<UserEntity[]> {
+    return await this.userRepository.find();
+  }
 
-    async updateUserDetails(id: number, updateUserDto: UpdateUserDto) {
-        const user = await UserEntity.findOneBy({ id: id });
-        if (!user) {
-            return 'User Not Found';
-        } else {
-            user.firstName = updateUserDto.firstName;
-            user.lastName = updateUserDto.lastName;
-            user.email = updateUserDto.email;
-            user.password = updateUserDto.password;
-            user.contactNo = updateUserDto.contactNo;
-            await user.save();
-            return user;
-        }
+  async addUser(input: UserEntity): Promise<UserEntity> {
+    return await this.userRepository.save({ ...input });
+  }
 
+  async updateUserDetails(
+    id: number,
+    updateUserDto: UpdateUserDto,
+  ): Promise<UserEntity | string> {
+    const user = await this.userRepository.findOneBy({ id: id });
+    if (!user) {
+      return 'User Not Found';
+    } else {
+      user.firstName = updateUserDto.firstName;
+      user.lastName = updateUserDto.lastName;
+      user.email = updateUserDto.email;
+      user.password = updateUserDto.password;
+      user.contactNo = updateUserDto.contactNo;
+      return await this.userRepository.save(user);
     }
+  }
 }

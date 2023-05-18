@@ -10,13 +10,13 @@ export class BorrowController {
     return this.borrowService.showBorrow();
   }
 
-  @Post(':id/issue/:userId')
-  issueBook(@Param('id') id: number, @Param('userId') userId: number) {
-    return this.borrowService.issueBook(id, userId);
+  @Post(':bookId/issue/:userId')
+  issueBook(@Param('bookId') bookId: number, @Param('userId') userId: number) {
+    return this.borrowService.issueBook(bookId, userId);
   }
 
-  @Post(':id/return')
-  returnBook(@Param('id') id: number) {
-    return this.borrowService.returnBook(id);
+  @Post(':borrowId/return')
+  returnBook(@Param('borrowId') borrowId: number) {
+    return this.borrowService.returnBook(borrowId);
   }
 }

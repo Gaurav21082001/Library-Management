@@ -13,8 +13,8 @@ export class BookEntity extends BaseEntity{
     @Column()
     author:string;
 
-    @Column({default:1})
-    isAvailable:number;
+    @Column({default:true})
+    isAvailable:boolean;
 
     @Column()
     stock:number;
