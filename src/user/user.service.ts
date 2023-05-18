@@ -1,5 +1,5 @@
-import { UpdateUserDto } from './DTO/updateUser.dto';
-import { AddUserDto } from './DTO/addUser.dto';
+import { UpdateUserDto } from './dto/update_user.dto';
+import { AddUserDto } from './dto/add_user.dto';
 import { Injectable } from '@nestjs/common';
 import { UserEntity } from './Entity/user.entity';
 import { UserRepository } from './user.repository';
@@ -34,5 +34,9 @@ export class UserService {
       user.contactNo = updateUserDto.contactNo;
       return await this.userRepository.save(user);
     }
+  }
+
+  async findOneBy(email): Promise<UserEntity | undefined> {
+    return await this.userRepository.findOneBy({ email: email });
   }
 }

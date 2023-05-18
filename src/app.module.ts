@@ -13,6 +13,7 @@ import { UserEntity } from './user/Entity/user.entity';
 import { BorrowModule } from './borrow/borrow.module';
 import { BorrowEntity } from './borrow/Entity/borrow.entity';
 import { BookRepository } from './book/book.repository';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { BookRepository } from './book/book.repository';
     BookModule,
     UserModule,
     BorrowModule,
+    AuthModule,
   ],
   controllers: [AppController, ],
   providers: [AppService, ],
