@@ -7,6 +7,7 @@ import {
   Post,
   Put,
   Query,
+  ParseIntPipe
 } from '@nestjs/common';
 import { Body } from '@nestjs/common/decorators';
 import { CreateBookDto } from './dto/create_book.dto';
@@ -18,8 +19,11 @@ export class BookController {
   constructor(private bookService: BookService) {}
 
   @Get('books')
-  getBooks() {
-    return this.bookService.getBooks();
+  async getBooks(
+    @Query('limit', ParseIntPipe) limit: number,
+    @Query('cursor') cursor: string,
+  ) {
+    return await this.bookService.paginate(limit, cursor);
   }
 
   @Post('add')

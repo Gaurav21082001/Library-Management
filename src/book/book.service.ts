@@ -12,19 +12,29 @@ export class BookService {
     @InjectRepository(BookEntity) private bookRepository: BookRepository,
   ) {}
 
-  async getBooks():Promise<BookEntity[]> {
-    return await this.bookRepository.find();
+  async paginate(limit: number, cursor: string) {
+    const queryBuilder = BookEntity.createQueryBuilder('book');
+    if (cursor) {
+      queryBuilder.where('book.id < :cursor', { cursor });
+    }
+    const results = await queryBuilder
+      .orderBy('book.id', 'DESC')
+      .limit(limit + 1)
+      .getMany();
+
+    const hasNextPage = results.length > limit;
+    const edges = hasNextPage ? results.slice(0, -1) : results;
+    const endCursor = edges.length > 0 ? edges[edges.length - 1].id : null;
+    const response = {
+      edges,
+      pageInfo: {
+        hasNextPage,
+        endCursor,
+      },
+    };
+    return response;
   }
 
-  // async addBook(createBookDto: CreateBookDto) {
-  //     const book = new BookEntity();
-  //     book.title = createBookDto.title;
-  //     book.details = createBookDto.details;
-  //     book.author = createBookDto.author;
-  //     book.stock = createBookDto.stock;
-  //     await book.save();
-  //     return book;
-  // }
   async addBook(input: CreateBookDto):Promise<BookEntity> {
     return await this.bookRepository.save({ ...input });
   }
