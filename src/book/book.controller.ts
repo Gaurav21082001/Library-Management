@@ -1,3 +1,4 @@
+import { CursorService } from './cursor.service';
 import { BookService } from './book.service';
 import {
   Controller,
@@ -16,14 +17,27 @@ import { BookEntity } from './Entity/book.entity';
 
 @Controller('book')
 export class BookController {
-  constructor(private bookService: BookService) {}
+  constructor(private bookService: BookService,
+    private cursorService:CursorService) {}
+
+  // @Get('books')
+  // async getBooks(
+  //   @Query('limit', ParseIntPipe) limit: number,
+  //   @Query('cursor') cursor: string,
+  // ) {
+  //   return await this.bookService.paginate(limit, cursor);
+  // }
 
   @Get('books')
   async getBooks(
     @Query('limit', ParseIntPipe) limit: number,
-    @Query('cursor') cursor: string,
+    @Query('column') _column: string,
+    @Query('direction') direction: 'ASC' | 'DESC',
+    @Query('cursor') cursor?: string,
+    
   ) {
-    return await this.bookService.paginate(limit, cursor);
+    const decodedCursor=cursor ? this.cursorService.decodeCursor(cursor) : undefined;
+    return await this.bookService.findPaginated(limit,_column,direction, decodedCursor);
   }
 
   @Post('add')
