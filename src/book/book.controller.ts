@@ -20,14 +20,6 @@ export class BookController {
   constructor(private bookService: BookService,
     private cursorService:CursorService) {}
 
-  // @Get('books')
-  // async getBooks(
-  //   @Query('limit', ParseIntPipe) limit: number,
-  //   @Query('cursor') cursor: string,
-  // ) {
-  //   return await this.bookService.paginate(limit, cursor);
-  // }
-
   @Get('books')
   async getBooks(
     @Query('limit', ParseIntPipe) limit: number,

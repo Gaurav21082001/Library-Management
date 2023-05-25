@@ -14,11 +14,16 @@ export class BookService {
     private cursorService: CursorService,
   ) {}
 
-  async findPaginated(limit: number,_column:string,direction:'ASC'|'DESC', cursor?: string) {
+  async findPaginated(
+    limit: number,
+    _column: string,
+    direction: 'ASC' | 'DESC',
+    cursor?: string,
+  ) {
     const query = this.bookRepository
       .createQueryBuilder('book')
       .take(limit + 1)
-      .orderBy(`book.${_column}`,direction)
+      .orderBy(`book.${_column}`, direction);
 
     if (cursor) {
       const decodedCursor = this.cursorService.decodeCursor(cursor);
@@ -39,29 +44,6 @@ export class BookService {
       hasNextPage,
       endCursor,
     };
-  }
-
-  async paginate(limit: number, cursor: string) {
-    const queryBuilder = BookEntity.createQueryBuilder('book');
-    if (cursor) {
-      queryBuilder.where('book.id < :cursor', { cursor });
-    }
-    const results = await queryBuilder
-      .orderBy('book.id', 'DESC')
-      .limit(limit + 1)
-      .getMany();
-
-    const hasNextPage = results.length > limit;
-    const edges = hasNextPage ? results.slice(0, -1) : results;
-    const endCursor = edges.length > 0 ? edges[edges.length - 1].id : null;
-    const response = {
-      edges,
-      pageInfo: {
-        hasNextPage,
-        endCursor,
-      },
-    };
-    return response;
   }
 
   async addBook(input: CreateBookDto): Promise<BookEntity> {
