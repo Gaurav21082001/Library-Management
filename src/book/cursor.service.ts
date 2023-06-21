@@ -7,7 +7,8 @@ export class CursorService {
     return encodedValue;
   }
 
-  decodeCursor(encodedValue: string): string {
+  decodeCursor(encodedValue:string): string {
+    // console.log(encodedValue);
     const decodedValue = Buffer.from(encodedValue, 'base64').toString('utf-8');
     return decodedValue;
   }

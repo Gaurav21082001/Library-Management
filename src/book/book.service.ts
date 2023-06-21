@@ -3,8 +3,7 @@ import { UpdateBookDto } from './dto/update_book.dto';
 import { CreateBookDto } from './dto/create_book.dto';
 import { Injectable } from '@nestjs/common';
 import { BookEntity } from './Entity/book.entity';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectRepository, getRepositoryToken } from '@nestjs/typeorm';
 import { BookRepository } from './book.repository';
 
 @Injectable()
@@ -26,13 +25,17 @@ export class BookService {
       .orderBy(`book.${_column}`, direction);
 
     if (cursor) {
-      const decodedCursor = this.cursorService.decodeCursor(cursor);
-      query.where('book.id > :cursor', { cursor: decodedCursor });
+      query
+        .where('book.id >=:cursor', { cursor: cursor })
+        .take(limit + 1)
+        .orderBy(`book.${_column}`, direction);
     }
     const entities = await query.getMany();
-    console.log(entities);
     const hasNextPage = entities.length > limit;
     const items = hasNextPage ? entities.slice(0, -1) : entities;
+    if (items.length == 0) {
+      return 'books not found';
+    }
     const endCursor =
       items.length > 0
         ? this.cursorService.encodeCursor(items[items.length - 1].id.toString())
@@ -70,13 +73,16 @@ export class BookService {
     return await this.bookRepository.delete(id);
   }
 
-  async searchBook(search: string): Promise<BookEntity[]> {
+  async searchBook(search: string): Promise<BookEntity[] | string> {
     const queryBuilder = this.bookRepository.createQueryBuilder('book');
     const books = await queryBuilder
       .where('book.title LIKE :search OR book.author LIKE :search', {
         search: `%${search}%`,
       })
       .getMany();
+    if (books.length==0) {
+      return 'No result found';
+    }
     return books;
   }
 }

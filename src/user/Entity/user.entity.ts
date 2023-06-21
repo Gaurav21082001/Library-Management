@@ -1,4 +1,5 @@
-import {Entity,PrimaryGeneratedColumn,BaseEntity,Column} from 'typeorm'
+import { IsEmail,IsNotEmpty,Validate } from 'class-validator';
+import {Entity,PrimaryGeneratedColumn,BaseEntity,Column, Unique} from 'typeorm'
 @Entity('user')
 export class UserEntity extends BaseEntity{
     @PrimaryGeneratedColumn()
@@ -14,10 +15,13 @@ export class UserEntity extends BaseEntity{
     @Column({default:'student'})
     role:string;
 
-    @Column()
+    @Column({unique: true})
+    @IsEmail()
+    // @Validate(Unique)
     email:string;
 
     @Column()
+    @IsNotEmpty()
     password:string;
 
     @Column()
