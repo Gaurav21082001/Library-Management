@@ -1,6 +1,6 @@
 import { UpdateUserDto } from './dto/update_user.dto';
 import { AddUserDto } from './dto/add_user.dto';
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UserEntity } from './Entity/user.entity';
 import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -18,12 +18,15 @@ export class UserService {
     return await this.userRepository.find();
   }
 
-  async addUser(input: UserEntity): Promise<UserEntity | string> {
+  async addUser(input: UserEntity): Promise<UserEntity> {
     const user=await this.userRepository.findOneBy({email:input.email});
     if(user){
-      return 'This email is already register.'
+      throw new HttpException(
+        'This email already exists',
+        HttpStatus.BAD_REQUEST,
+      );
     }else{
-      input.password=String(crypto.SHA256(input.password))
+      input.password=String(crypto.SHA256(input.password));
       return await this.userRepository.save({...input});
     }
     
@@ -32,15 +35,18 @@ export class UserService {
   async updateUserDetails(
     id: number,
     updateUserDto: UpdateUserDto,
-  ): Promise<UserEntity | string> {
+  ): Promise<UserEntity> {
     const user = await this.userRepository.findOneBy({ id: id });
     if (!user) {
-      return 'User Not Found';
+      throw new HttpException(
+        'User does not exist',
+        HttpStatus.BAD_REQUEST,
+      );;
     } else {
       user.firstName = updateUserDto.firstName;
       user.lastName = updateUserDto.lastName;
       user.email = updateUserDto.email;
-      user.password = updateUserDto.password;
+      user.password = String(crypto.SHA256(updateUserDto.password));
       user.contactNo = updateUserDto.contactNo;
       return await this.userRepository.save(user);
     }

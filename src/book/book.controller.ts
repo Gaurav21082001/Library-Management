@@ -14,6 +14,7 @@ import { Body } from '@nestjs/common/decorators';
 import { CreateBookDto } from './dto/create_book.dto';
 import { UpdateBookDto } from './dto/update_book.dto';
 import { BookEntity } from './Entity/book.entity';
+import { GetBooksQueryInput } from './get_books_query.dto';
 
 @Controller('book')
 export class BookController {
@@ -24,19 +25,21 @@ export class BookController {
 
   @Get('books')
   async getBooks(
-    @Query('limit', ParseIntPipe) limit: number,
-    @Query('column') _column: string,
-    @Query('direction') direction: 'ASC' | 'DESC',
-    @Query('cursor') cursor?: string,
+    @Query() queryParams: GetBooksQueryInput
   ) {
-    const decodedCursor = cursor
-      ? this.cursorService.decodeCursor(cursor)
+    const limit=parseInt(queryParams.limit)
+    // return queryParams.column;
+    const decodedStartCursor = queryParams.startCursor
+      ? this.cursorService.decodeCursor(queryParams.startCursor)
+      : undefined;
+      const decodedEndCursor = queryParams.endCursor
+      ? this.cursorService.decodeCursor(queryParams.endCursor)
       : undefined;
     return await this.bookService.findPaginated(
+      queryParams,
       limit,
-      _column,
-      direction,
-      decodedCursor,
+      decodedStartCursor,
+      decodedEndCursor
     );
   }
 
