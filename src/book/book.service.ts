@@ -106,31 +106,59 @@ export class BookService {
     };
   }
 
-  async addBook(input: CreateBookDto): Promise<BookEntity> {
-    return await this.bookRepository.save({ ...input });
+  
+  async addBook(input: CreateBookDto,role): Promise<BookEntity> {
+    if(role==='librarian'){
+     const response= await this.bookRepository.save({ ...input });
+       throw new HttpException(`${response}`,HttpStatus.OK)
+    }
+    throw new HttpException('User does not exist',HttpStatus.BAD_REQUEST)
   }
 
   async updateBookDetails(
     id: number,
     updateBookDto: UpdateBookDto,
+    role
   ): Promise<BookEntity> {
-    const book = await this.bookRepository.findOneBy({ id: id });
+    if(role==='librarian'){
+      const book = await this.bookRepository.findOneBy({ id: id });
     if (book) {
       book.title = updateBookDto.title;
       book.details = updateBookDto.details;
       book.author = updateBookDto.author;
       book.stock = updateBookDto.stock;
-      return await this.bookRepository.save(book);
+      const response= await this.bookRepository.save(book);
+      throw new HttpException(`${response.id} book Updated successfully`,HttpStatus.OK)
     } else {
       throw new HttpException(
         'Book not found',
         HttpStatus.NOT_FOUND,
       );
     }
+    }
+    throw new HttpException('User does not exist',HttpStatus.BAD_REQUEST)
+    
   }
 
-  async deleteBook(id: number) {
-    return await this.bookRepository.delete(id);
+  async deleteBook(id: number,role){
+    if(role==='librarian'){
+      const book=await this.bookRepository.findOneBy({id:id});
+      if(book){
+         await this.bookRepository.delete(id);
+         throw new HttpException(
+          'Book successfully deleted',
+          HttpStatus.OK,
+        );
+      }else{
+        throw new HttpException(
+          'Book not found',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      
+    }
+    throw new HttpException('User does not exist',HttpStatus.BAD_REQUEST)
+    
   }
 
   async searchBook(search: string): Promise<BookEntity[] > {
