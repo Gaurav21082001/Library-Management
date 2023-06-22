@@ -1,7 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException,NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import * as crypto from 'crypto-js';
+
 
 @Injectable()
 export class AuthService {
@@ -18,11 +19,17 @@ export class AuthService {
         };
         }
       else{
-      return 'Please check password'
+        throw new HttpException(
+          'Password does not match!',
+          HttpStatus.BAD_REQUEST,
+        );
     }
   }
     else{
-      return 'User does not exist! Please check username.'
+      throw new HttpException(
+        'User does not exist',
+        HttpStatus.BAD_REQUEST,
+      );
     }
     
   }

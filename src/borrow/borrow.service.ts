@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { BookEntity } from 'src/book/Entity/book.entity';
 import { BorrowEntity } from './Entity/borrow.entity';
 import { UserEntity } from 'src/user/Entity/user.entity';
@@ -21,11 +26,10 @@ export class BorrowService {
   async issueBook(
     bookId: number,
     userId: number,
-  ): Promise<string | BorrowEntity | BorrowEntity[]> {
+  ): Promise<BorrowEntity | BorrowEntity[]> {
     const book = await BookEntity.findOneBy({ id: bookId });
     const user = await UserEntity.findOneBy({ id: userId });
     const borrow = new BorrowEntity();
-
     const borrowExist = await BorrowEntity.find({
       where: {
         bookId: bookId,
@@ -35,13 +39,13 @@ export class BorrowService {
     });
 
     if (borrowExist.length >= 1) {
-      return 'Duplicate book request';
+      throw new HttpException('Duplicate book request', HttpStatus.BAD_REQUEST);
     } else {
       if (!book) {
-        return 'Book not exist';
+        throw new HttpException('Book not exist', HttpStatus.NOT_FOUND);
       }
       if (!user) {
-        return 'User not found';
+        throw new HttpException('User does not exist!', HttpStatus.BAD_REQUEST);
       }
       if (book.stock != 0) {
         book.stock -= 1;
@@ -56,12 +60,15 @@ export class BorrowService {
         );
         return borrow;
       } else {
-        return 'This book is currently unavailable';
+        throw new HttpException(
+          'This book is currently unavailable!',
+          HttpStatus.NOT_FOUND,
+        );
       }
     }
   }
 
-  async returnBook(bookId: number, userId: number):Promise<BorrowEntity[] | string> {
+  async returnBook(bookId: number, userId: number): Promise<BorrowEntity[]> {
     const book = await BookEntity.findOneBy({ id: bookId });
 
     const borrowExist = await BorrowEntity.find({
@@ -71,22 +78,18 @@ export class BorrowService {
         returnDate: IsNull(),
       },
     });
-    if (borrowExist.length == 0) {
-      return 'Book Entry not found';
+    if (borrowExist.length > 0) {
+      borrowExist[borrowExist.length - 1].returnDate = await new Date();
+      book.stock += 1;
+      await this.dataSource.manager.transaction(
+        async (transactionalEntityManager) => {
+          await transactionalEntityManager.save(BookEntity, book);
+          await transactionalEntityManager.save(BorrowEntity, borrowExist);
+        },
+      );
+      return await borrowExist;
     } else {
-      if (borrowExist.length > 0) {
-        borrowExist[borrowExist.length - 1].returnDate = await new Date();
-        book.stock += 1;
-        await this.dataSource.manager.transaction(
-          async (transactionalEntityManager) => {
-            await transactionalEntityManager.save(BookEntity, book);
-            await transactionalEntityManager.save(BorrowEntity, borrowExist);
-          },
-        );
-        return await borrowExist;
-      } else {
-        return 'Issued book not found';
-      }
+      throw new HttpException('Book entry not found!', HttpStatus.NOT_FOUND);
     }
   }
 }
