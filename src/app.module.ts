@@ -31,7 +31,7 @@ import { AuthModule } from './auth/auth.module';
     BorrowModule,
     AuthModule,
   ],
-  controllers: [AppController, ],
+  controllers: [AppController ],
   providers: [AppService, ],
 })
 export class AppModule {}

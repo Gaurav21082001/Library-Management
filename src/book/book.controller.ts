@@ -1,3 +1,4 @@
+import { CursorService } from './cursor.service';
 import { BookService } from './book.service';
 import {
   Controller,
@@ -7,6 +8,7 @@ import {
   Post,
   Put,
   Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { Body } from '@nestjs/common/decorators';
 import { CreateBookDto } from './dto/create_book.dto';
@@ -15,11 +17,27 @@ import { BookEntity } from './Entity/book.entity';
 
 @Controller('book')
 export class BookController {
-  constructor(private bookService: BookService) {}
+  constructor(
+    private bookService: BookService,
+    private cursorService: CursorService,
+  ) {}
 
   @Get('books')
-  getBooks() {
-    return this.bookService.getBooks();
+  async getBooks(
+    @Query('limit', ParseIntPipe) limit: number,
+    @Query('column') _column: string,
+    @Query('direction') direction: 'ASC' | 'DESC',
+    @Query('cursor') cursor?: string,
+  ) {
+    const decodedCursor = cursor
+      ? this.cursorService.decodeCursor(cursor)
+      : undefined;
+    return await this.bookService.findPaginated(
+      limit,
+      _column,
+      direction,
+      decodedCursor,
+    );
   }
 
   @Post('add')
