@@ -24,7 +24,7 @@ export class BookService {
       .createQueryBuilder('book')
       .orderBy(`book.${queryParams.column}`, queryParams.direction);
     // return `startCursor is ${startCursor} && endCursor is ${endCursor} and ${queryParams.column}`;
-    if (startCursor && !limit) {
+    if (startCursor && !limit && !endCursor) {
       // return startCursor;
       query
         .where('book.id >= :startCursor', {
