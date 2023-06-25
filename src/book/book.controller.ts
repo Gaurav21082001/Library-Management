@@ -15,7 +15,9 @@ import { CreateBookDto } from './dto/create_book.dto';
 import { UpdateBookDto } from './dto/update_book.dto';
 import { BookEntity } from './Entity/book.entity';
 import { GetBooksQueryInput } from './get_books_query.dto';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { RolesGuard } from 'src/roles/roles.guard';
+import { Roles } from 'src/roles/roles.decorator';
+import { Role } from 'src/roles/role.enum';
 
 @Controller('book')
 export class BookController {
@@ -43,27 +45,27 @@ export class BookController {
   }
 
   @Post('add')
-  @UseGuards(AuthGuard)
-  async addBook(@Body() body: BookEntity, @Req() request) {
-    const role = request.user.role;
-    return await this.bookService.addBook(body,role);
+  @UseGuards(RolesGuard)
+  @Roles(Role.LIBRARIAN)
+  async addBook(@Body() body: BookEntity) {
+    return await this.bookService.addBook(body);
   }
+
   @Put(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(RolesGuard)
+  @Roles(Role.LIBRARIAN)
   async updateBookDetails(
     @Param('id') id: number,
     @Body() updateBookDto: UpdateBookDto,
-    @Req() request,
   ) {
-    const role = request.user.role;
-    return await this.bookService.updateBookDetails(id, updateBookDto,role);
+    return await this.bookService.updateBookDetails(id, updateBookDto);
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard)
-  async deleteBook(@Param('id') id: number, @Req() request) {
-    const role = request.user.role;
-    return await this.bookService.deleteBook(id,role);
+  @UseGuards(RolesGuard)
+  // @Roles(Role.LIBRARIAN)
+  async deleteBook(@Param('id') id: number) {
+    return await this.bookService.deleteBook(id);
   }
 
   @Get(':search')
