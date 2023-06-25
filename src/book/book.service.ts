@@ -24,22 +24,18 @@ export class BookService {
       .createQueryBuilder('book')
       .orderBy(`book.${queryParams.column}`, queryParams.direction);
     // return `startCursor is ${startCursor} && endCursor is ${endCursor} and ${queryParams.column}`;
-    if (startCursor && endCursor) {
+    if (startCursor && !limit && !endCursor) {
       // return startCursor;
       query
-        .where('book.id >= :startCursor AND book.id <= :endCursor', {
+        .where('book.id >= :startCursor', {
           startCursor: startCursor,
-          endCursor: endCursor,
         })
         .orderBy(`book.${queryParams.column}`, queryParams.direction);
       const entities = await query.getMany();
       // return entities[0]
       const items = entities;
       if (items.length == 0) {
-        throw new HttpException(
-          'Book not found',
-          HttpStatus.NOT_FOUND,
-        );
+        throw new HttpException('Book not found', HttpStatus.NOT_FOUND);
       }
 
       const limitCursor =
@@ -55,7 +51,36 @@ export class BookService {
         limitCursor,
       };
     }
-    if (limit && startCursor) {
+    if (startCursor && endCursor) {
+      // return startCursor;
+      query
+        .where('book.id >= :startCursor AND book.id <= :endCursor', {
+          startCursor: startCursor,
+          endCursor: endCursor,
+        })
+        .orderBy(`book.${queryParams.column}`, queryParams.direction);
+      const entities = await query.getMany();
+      // return entities[0]
+      const items = entities;
+      if (items.length == 0) {
+        throw new HttpException('Book not found', HttpStatus.NOT_FOUND);
+      }
+
+      const limitCursor =
+        items.length > 0
+          ? this.cursorService.encodeCursor(
+              items[items.length - 1].id.toString(),
+            )
+          : null;
+
+      return {
+        items,
+        totalCount: items.length,
+        limitCursor,
+      };
+    }
+
+    if (startCursor && limit) {
       query
         .where('book.id >=:startCursor', { startCursor: startCursor })
         .take(limit + 1)
@@ -65,10 +90,7 @@ export class BookService {
       const hasNextPage = entities.length > queryParams.limit;
       const items = hasNextPage ? entities.slice(0, -1) : entities;
       if (items.length == 0) {
-        throw new HttpException(
-          'Book not found',
-          HttpStatus.NOT_FOUND,
-        );
+        throw new HttpException('Book not found', HttpStatus.NOT_FOUND);
       }
       const endCursor =
         items.length > 0
@@ -88,10 +110,7 @@ export class BookService {
     const hasNextPage = entities.length > queryParams.limit;
     const items = hasNextPage ? entities.slice(0, -1) : entities;
     if (items.length == 0) {
-      throw new HttpException(
-        'Book not found',
-        HttpStatus.NOT_FOUND,
-      );
+      throw new HttpException('Book not found', HttpStatus.NOT_FOUND);
     }
     const limitCursor =
       items.length > 0
@@ -107,7 +126,10 @@ export class BookService {
   }
 
   async addBook(input: CreateBookDto): Promise<BookEntity> {
-    return await this.bookRepository.save({ ...input });
+   
+      const response = await this.bookRepository.save({ ...input });
+      throw new HttpException(`${response}`, HttpStatus.OK);
+ 
   }
 
   async updateBookDetails(
@@ -120,20 +142,27 @@ export class BookService {
       book.details = updateBookDto.details;
       book.author = updateBookDto.author;
       book.stock = updateBookDto.stock;
-      return await this.bookRepository.save(book);
-    } else {
+      const response = await this.bookRepository.save(book);
       throw new HttpException(
-        'Book not found',
-        HttpStatus.NOT_FOUND,
+        `${response.id} book Updated successfully`,
+        HttpStatus.OK,
       );
+    } else {
+      throw new HttpException('Book not found', HttpStatus.NOT_FOUND);
     }
   }
 
   async deleteBook(id: number) {
-    return await this.bookRepository.delete(id);
+    const book = await this.bookRepository.findOneBy({ id: id });
+    if (book) {
+      await this.bookRepository.delete(id);
+      throw new HttpException('Book successfully deleted', HttpStatus.OK);
+    } else {
+      throw new HttpException('Book not found', HttpStatus.NOT_FOUND);
+    }
   }
 
-  async searchBook(search: string): Promise<BookEntity[] > {
+  async searchBook(search: string): Promise<BookEntity[]> {
     const queryBuilder = this.bookRepository.createQueryBuilder('book');
     const books = await queryBuilder
       .where('book.title LIKE :search OR book.author LIKE :search', {
@@ -141,10 +170,7 @@ export class BookService {
       })
       .getMany();
     if (books.length == 0) {
-      throw new HttpException(
-        'Book not found',
-        HttpStatus.NOT_FOUND,
-      );
+      throw new HttpException('Book not found', HttpStatus.NOT_FOUND);
     }
     return books;
   }

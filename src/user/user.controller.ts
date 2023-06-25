@@ -23,6 +23,7 @@ export class UserController {
   async getUsers() {
     return this.userService.getUsers();
   }
+  
   @Post()
   async addUser(@Body() body: UserEntity) {
     return this.userService.addUser(body);
@@ -41,4 +42,6 @@ export class UserController {
   getProfile(@Req() request) {
     return request.user;
   }
+
+  
 }

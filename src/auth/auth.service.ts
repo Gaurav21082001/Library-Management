@@ -13,7 +13,7 @@ export class AuthService {
     const hash=await String(crypto.SHA256(pass));
     if(user){
      if (user.password===hash) {
-        const payload = { email: user.email, userId: user.id };
+        const payload = { email: user.email, userId: user.id,role:user.role };
         return {
           token: await this.jwtService.sign(payload),
         };

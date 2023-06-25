@@ -49,6 +49,9 @@ export class BorrowService {
       }
       if (book.stock != 0) {
         book.stock -= 1;
+        if(book.stock==0){
+          book.isAvailable=false;
+        }
         borrow.bookId = bookId;
         borrow.userId = userId;
         borrow.issueDate = new Date();
@@ -81,6 +84,9 @@ export class BorrowService {
     if (borrowExist.length > 0) {
       borrowExist[borrowExist.length - 1].returnDate = await new Date();
       book.stock += 1;
+      if(book.stock>0){
+        book.isAvailable=true;
+      }
       await this.dataSource.manager.transaction(
         async (transactionalEntityManager) => {
           await transactionalEntityManager.save(BookEntity, book);
