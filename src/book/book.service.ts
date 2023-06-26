@@ -26,6 +26,7 @@ export class BookService {
     // return `startCursor is ${startCursor} && endCursor is ${endCursor} and ${queryParams.column}`;
     if (startCursor && !limit && !endCursor) {
       // return startCursor;
+      const encodedStartCursor=this.cursorService.encodeCursor(startCursor);
       query
         .where('book.id >= :startCursor', {
           startCursor: startCursor,
@@ -48,11 +49,13 @@ export class BookService {
       return {
         items,
         totalCount: items.length,
+        encodedStartCursor,
         limitCursor,
       };
     }
     if (startCursor && endCursor) {
       // return startCursor;
+      const encodedStartCursor=this.cursorService.encodeCursor(startCursor);
       query
         .where('book.id >= :startCursor AND book.id <= :endCursor', {
           startCursor: startCursor,
@@ -76,11 +79,12 @@ export class BookService {
       return {
         items,
         totalCount: items.length,
+        encodedStartCursor,
         limitCursor,
       };
     }
-
     if (startCursor && limit) {
+     const encodedStartCursor=this.cursorService.encodeCursor(startCursor);
       query
         .where('book.id >=:startCursor', { startCursor: startCursor })
         .take(limit + 1)
@@ -103,6 +107,7 @@ export class BookService {
         items,
         totalCount: items.length,
         hasNextPage,
+        encodedStartCursor,
         endCursor,
       };
     }
@@ -126,10 +131,8 @@ export class BookService {
   }
 
   async addBook(input: CreateBookDto): Promise<BookEntity> {
-   
-      const response = await this.bookRepository.save({ ...input });
-      throw new HttpException(`${response}`, HttpStatus.OK);
- 
+    const response = await this.bookRepository.save({ ...input });
+    throw new HttpException(`${response}`, HttpStatus.OK);
   }
 
   async updateBookDetails(
