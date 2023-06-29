@@ -23,6 +23,10 @@ export class UserController {
   async getUsers() {
     return this.userService.getUsers();
   }
+  @Get()
+  async getUser() {
+    return this.userService.getUsers();
+  }
   
   @Post()
   async addUser(@Body() body: UserEntity) {
