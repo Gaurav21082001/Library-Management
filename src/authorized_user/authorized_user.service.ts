@@ -1,8 +1,9 @@
-import { Injectable,HttpException,HttpStatus } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { Authorized_usersEntity } from './entity/authorized_user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Authorized_UsersRepository } from './authorized_user.repository';
 import { Update_authorized_user } from './dto/authorized_user.dto';
+import { In } from 'typeorm';
 
 @Injectable()
 export class AuthorizedUserService {
@@ -11,29 +12,72 @@ export class AuthorizedUserService {
     private authorized_UsersRepository: Authorized_UsersRepository,
   ) {}
 
-  async addUsers(role) {
-    // return role;
-    const user=new Authorized_usersEntity();
-    user.authorized_users=["librarian"];
-    await this.authorized_UsersRepository.save(user);
+  async addRole(role: string) {
+    const existingRole = await this.authorized_UsersRepository.findOneBy({
+      roles: role,
+    });
+    if (existingRole) {
+      throw new HttpException(
+        'This role already exist',
+        HttpStatus.BAD_REQUEST,
+      );
+    } else {
+      return await this.authorized_UsersRepository.save({ roles: role });
+    }
   }
 
-  async updateUser(update_authorized_user:Update_authorized_user):Promise<Authorized_usersEntity> {
-    // return role;
-    const user=await this.authorized_UsersRepository.findOneBy({id:1});
-    console.log(update_authorized_user.authorized_users);
-    user.authorized_users=update_authorized_user.authorized_users;
-   const response=await this.authorized_UsersRepository.save(user);
-    throw new HttpException(
-      `${response.id,response.authorized_users} Updated successfully`,
-      HttpStatus.OK,
-    );
-    return user;
-    // throw new HttpException('Updated successfully', HttpStatus.OK);
+  async updateCRUDUsersAccess(role: Update_authorized_user) {
+    console.log(role);
+    return role.roles.map((role) => {
+      const rolesString = JSON.stringify(role);
+      const obj = JSON.parse(rolesString);
+      for (var key in obj) {
+        const query = this.authorized_UsersRepository
+          .createQueryBuilder('authorized_role')
+          .update(Authorized_usersEntity)
+          .set({ hascrudaccess: obj[key] })
+          .where('roles=:key', { key: key })
+          .execute();
+        return `key is ${key} and value is ${obj[key]}`;
+      }
+    });
   }
 
-  async findOneById(id){
-    const user=await this.authorized_UsersRepository.findOneBy({id});
-    return await user.authorized_users;
+  async updateIRUsersAccess(role: Update_authorized_user) {
+    console.log(role);
+    return role.roles.map((role) => {
+      const rolesString = JSON.stringify(role);
+      const obj = JSON.parse(rolesString);
+      for (var key in obj) {
+        this.authorized_UsersRepository
+          .createQueryBuilder('authorized_role')
+          .update(Authorized_usersEntity)
+          .set({ hasiraccess: obj[key] })
+          .where('roles=:key', { key: key })
+          .execute();
+        return `key is ${key} and value is ${obj[key]}`;
+      }
+    });
+  }
+
+  async findOneByCRUDRole() {
+    const rolesJson = await this.authorized_UsersRepository.find({
+      where: {
+        hascrudaccess: true,
+      },
+    });
+    return rolesJson.map((role) => {
+      return role.roles;
+    });
+  }
+  async findOneByIRRole() {
+    const rolesJson = await this.authorized_UsersRepository.find({
+      where: {
+        hasiraccess: true,
+      },
+    });
+    return rolesJson.map((role) => {
+      return role.roles;
+    });
   }
 }

@@ -53,7 +53,7 @@ export class BookService {
         limitCursor,
       };
     }
-    if (startCursor && endCursor) {
+    if (startCursor && endCursor && !limit) {
       // return startCursor;
       const encodedStartCursor=this.cursorService.encodeCursor(startCursor);
       query
@@ -83,7 +83,7 @@ export class BookService {
         limitCursor,
       };
     }
-    if (startCursor && limit) {
+    if (startCursor && limit && !endCursor) {
      const encodedStartCursor=this.cursorService.encodeCursor(startCursor);
       query
         .where('book.id >=:startCursor', { startCursor: startCursor })
@@ -110,6 +110,18 @@ export class BookService {
         encodedStartCursor,
         endCursor,
       };
+    }
+    if(!startCursor && limit && endCursor){
+      throw new HttpException('This combination is not valid.', HttpStatus.BAD_REQUEST);
+    }
+    if(!startCursor && !limit && endCursor){
+      throw new HttpException('This combination is not valid.', HttpStatus.BAD_REQUEST);
+    }
+    if(!startCursor && limit && !endCursor){
+      throw new HttpException('This combination is not valid.', HttpStatus.BAD_REQUEST);
+    }
+    if(startCursor && limit && endCursor){
+      throw new HttpException('This combination is not valid.', HttpStatus.BAD_REQUEST);
     }
     const entities = await query.getMany();
     const hasNextPage = entities.length > queryParams.limit;

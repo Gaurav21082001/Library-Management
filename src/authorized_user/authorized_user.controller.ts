@@ -11,21 +11,30 @@ import { Update_authorized_user } from './dto/authorized_user.dto';
 export class AuthorizedUserController {
   constructor(private authorizedUserService: AuthorizedUserService) {}
 
-  @Post('users')
+  @Post('addrole')
   @UseGuards(AdminGuard)
-  async addUsers(@Body('role') role) {
-    return this.authorizedUserService.addUsers(role);
+  async addRole(@Body('role') role: string) {
+    return this.authorizedUserService.addRole(role);
   }
 
-  @Put('users')
+  @Put('crud/users')
   @UseGuards(AdminGuard)
-  async updateUser(@Body() authorized_users:Update_authorized_user):Promise<Authorized_usersEntity> {
-    return this.authorizedUserService.updateUser(authorized_users);
+  async updateCRUDUsersAccess(@Body() roles: Update_authorized_user) {
+    return await this.authorizedUserService.updateCRUDUsersAccess(roles);
   }
 
+  @Put('ir/users')
   @UseGuards(AdminGuard)
-  @Get('userInfo')
-  async findOneById(id: number) {
-    return this.authorizedUserService.findOneById(id);
+  async updateIRUsersAccess(@Body() roles: Update_authorized_user) {
+    return await this.authorizedUserService.updateIRUsersAccess(roles);
+  }
+
+  @Get('crud/userInfo')
+  async findOneByCRUDRole() {
+    return this.authorizedUserService.findOneByCRUDRole();
+  }
+  @Get('ir/userInfo')
+  async findOneByIRRole() {
+    return this.authorizedUserService.findOneByIRRole();
   }
 }

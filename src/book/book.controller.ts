@@ -11,13 +11,11 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { Body, Req, UseGuards } from '@nestjs/common/decorators';
-import { CreateBookDto } from './dto/create_book.dto';
 import { UpdateBookDto } from './dto/update_book.dto';
 import { BookEntity } from './Entity/book.entity';
 import { GetBooksQueryInput } from './get_books_query.dto';
-import { RolesGuard } from 'src/roles/roles.guard';
-import { Roles } from 'src/roles/roles.decorator';
-import { Role } from 'src/roles/role.enum';
+import { CRUDRolesGuard } from 'src/roles/crudroles.guard';
+
 
 @Controller('book')
 export class BookController {
@@ -45,13 +43,13 @@ export class BookController {
   }
 
   @Post('add')
-  @UseGuards(RolesGuard)
+  @UseGuards(CRUDRolesGuard)
   async addBook(@Body() body: BookEntity) {
     return await this.bookService.addBook(body);
   }
 
   @Put(':id')
-  @UseGuards(RolesGuard)
+  @UseGuards(CRUDRolesGuard)
   async updateBookDetails(
     @Param('id') id: number,
     @Body() updateBookDto: UpdateBookDto,
@@ -60,7 +58,7 @@ export class BookController {
   }
 
   @Delete(':id')
-  @UseGuards(RolesGuard)
+  @UseGuards(CRUDRolesGuard)
   async deleteBook(@Param('id') id: number) {
     return await this.bookService.deleteBook(id);
   }
