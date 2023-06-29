@@ -46,14 +46,12 @@ export class BookController {
 
   @Post('add')
   @UseGuards(RolesGuard)
-  @Roles(Role.LIBRARIAN)
   async addBook(@Body() body: BookEntity) {
     return await this.bookService.addBook(body);
   }
 
   @Put(':id')
   @UseGuards(RolesGuard)
-  @Roles(Role.LIBRARIAN)
   async updateBookDetails(
     @Param('id') id: number,
     @Body() updateBookDto: UpdateBookDto,
@@ -63,7 +61,6 @@ export class BookController {
 
   @Delete(':id')
   @UseGuards(RolesGuard)
-  // @Roles(Role.LIBRARIAN)
   async deleteBook(@Param('id') id: number) {
     return await this.bookService.deleteBook(id);
   }

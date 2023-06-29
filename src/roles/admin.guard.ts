@@ -31,7 +31,7 @@ import { Role } from 'src/roles/role.enum';
         );
         
         request['user'] = payload;
-      console.log(request.user.role);
+      // console.log(request.user.role);
         if(request.user){
             return request.user.role==Role.ADMIN;
         }
