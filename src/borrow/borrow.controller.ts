@@ -1,6 +1,7 @@
 import { AuthGuard } from 'src/auth/auth.guard';
 import { BorrowService } from './borrow.service';
 import { Controller, Get, Param, Post,Req,UseGuards } from '@nestjs/common';
+import { IRRolesGuard } from 'src/roles/irroles.guard';
 
 @Controller('borrow')
 export class BorrowController {
@@ -12,7 +13,7 @@ export class BorrowController {
   }
 
   @Post(':bookId/issue')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard,IRRolesGuard)
   issueBook(@Param('bookId') bookId: number,@Req() request) {
     const userId=request.user.userId;
     return this.borrowService.issueBook(bookId, userId);
@@ -24,7 +25,7 @@ export class BorrowController {
   // }
 
   @Post(':bookId/return')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard,IRRolesGuard)
   returnBook(@Param('bookId') bookId: number,@Req() request) {
     const userId=request.user.userId;
     return this.borrowService.returnBook(bookId,userId);
